@@ -68,6 +68,19 @@ function isOwnPiece(pieceType: string, color: 'white' | 'black') {
   return color === 'white' ? pieceType[0] === 'w' : pieceType[0] === 'b';
 }
 
+function pieceOnSquare(fen: string, square: string): string | null {
+  const file = square.charCodeAt(0) - 97;
+  const rank = 8 - parseInt(square[1]);
+  const ranks = fen.split(' ')[0].split('/');
+  let col = 0;
+  for (const ch of ranks[rank]) {
+    if (ch >= '1' && ch <= '8') { col += parseInt(ch); continue; }
+    if (col === file) return ch;
+    col++;
+  }
+  return null;
+}
+
 function findKingSquare(fen: string, color: 'white' | 'black'): string | null {
   const target = color === 'white' ? 'K' : 'k';
   const ranks = fen.split(' ')[0].split('/');
@@ -268,7 +281,9 @@ export default function App() {
     if (!config || !isHumanTurn || gameOver || config.mode !== 'player_vs_bot') return;
     if (selectedSq === square) { setSelectedSq(null); return; }
     if (selectedSq) {
-      if (square[1] === (config.player_color === 'white' ? '8' : '1')) {
+      const movingPiece = pieceOnSquare(currentFen, selectedSq);
+      const isPawn = movingPiece === 'P' || movingPiece === 'p';
+      if (isPawn && square[1] === (config.player_color === 'white' ? '8' : '1')) {
         setPromoPending({ from: selectedSq, to: square }); return;
       }
       sendMove(selectedSq, square);
