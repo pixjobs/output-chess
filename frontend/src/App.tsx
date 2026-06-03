@@ -131,6 +131,7 @@ export default function App() {
   const [moveInterval, setMoveInterval] = useState(600);
   const [moves, setMoves] = useState<{ san: string; color: 'white' | 'black' }[]>([]);
   const [statusText, setStatusText] = useState('READY');
+  const [inCheck, setInCheck] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const movesEndRef = useRef<HTMLDivElement | null>(null);
@@ -192,7 +193,7 @@ export default function App() {
 
   function doReset() {
     setPlaying(false); setGameOver(false); setGameResult('');
-    setSelectedSq(null); setMoves([]);
+    setSelectedSq(null); setMoves([]); setInCheck(false);
     setPosition(fenToPos(START_FEN)); setCurrentFen(START_FEN);
     setWhiteTurn(true); setStatusText('READY');
     fetch(`${API}/reset`);
@@ -215,6 +216,7 @@ export default function App() {
       if (d.error) { setStatusText(`ERR: ${d.error}`); setPlaying(false); return; }
       if (d.human_turn) { setStatusText('AWAITING INPUT'); setPlaying(false); return; }
       applyFen(d.fen);
+      setInCheck(d.in_check ?? false);
       if (d.san) appendMove(d.san, d.turn === 'white' ? 'white' : 'black');
       setStatusText(d.in_check ? '⚡ CHECK' : d.turn === 'white' ? 'WHITE TO MOVE' : 'BLACK TO MOVE');
       if (d.game_over) { endGame(d.result); return; }
@@ -233,6 +235,7 @@ export default function App() {
       const d = await r.json();
       if (d.error) { setStatusText(`ILLEGAL MOVE`); return; }
       applyFen(d.fen);
+      setInCheck(d.in_check ?? false);
       if (d.san) appendMove(d.san, cfg.player_color);
       if (d.bot_san) appendMove(d.bot_san, cfg.player_color === 'white' ? 'black' : 'white');
       if (d.game_over) { endGame(d.result); return; }
@@ -293,7 +296,7 @@ export default function App() {
   const material = computeMaterial(currentFen);
   const grouped = groupMoves(moves);
 
-  const checkSq = findKingSquare(currentFen, whiteTurn ? 'white' : 'black');
+  const checkSq = inCheck ? findKingSquare(currentFen, whiteTurn ? 'white' : 'black') : null;
   const squareStyles: Record<string, React.CSSProperties> = {};
   if (checkSq) squareStyles[checkSq] = { backgroundColor: 'rgba(220,53,69,0.5)' };
   if (selectedSq) squareStyles[selectedSq] = { backgroundColor: 'rgba(56,189,248,0.45)' };
