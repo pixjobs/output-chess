@@ -393,7 +393,6 @@ select.engine-select:focus { border-color: var(--accent); }
   border: 1px solid var(--border);
   border-radius: 2px;
   padding: 6px 24px;
-  min-width: 220px;
   text-align: center;
   transition: color 0.2s, border-color 0.2s;
 }
@@ -701,11 +700,120 @@ input[type=range].skill-track,
 
 /* ── Responsive ───────────────────────────────────── */
 
-@media (max-width: 700px) {
-  .main-layout { flex-direction: column; align-items: center; padding: 10px 12px 20px; }
-  .board-column { width: min(480px, calc(100vw - 24px)); }
-  .sidebar { width: 100%; padding-top: 0; }
-  .log-list { max-height: 150px; }
-  .app-header { height: auto; padding: 10px 14px; gap: 10px; }
-  .mode-tab { padding: 7px 12px; }
+@media (max-width: 760px) {
+  /* ── Layout ── */
+  .main-layout {
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 10px 24px;
+    gap: 10px;
+  }
+
+  /* Board fills the viewport minus gutters */
+  .board-column {
+    width: min(480px, calc(100vw - 20px));
+    gap: 4px;
+  }
+
+  /* Sidebar goes below the board, full width */
+  .sidebar {
+    width: min(480px, calc(100vw - 20px));
+    padding-top: 0;
+    gap: 8px;
+  }
+
+  /* Hide the static engine readout — move log is enough on mobile */
+  .engine-info-panel { display: none; }
+
+  .log-list { max-height: 130px; }
+
+  /* ── Header ── */
+  .app-header {
+    height: auto;
+    padding: 8px 12px;
+    gap: 6px;
+  }
+
+  /* Shrink the pixel font so it doesn't blow the header */
+  .logo-wordmark { font-size: 0.5rem; letter-spacing: 0.5px; }
+  .logo-knight   { font-size: 1.1rem; }
+
+  /* Nav wraps to its own row, fills width */
+  .header-nav {
+    width: 100%;
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .play-as-label { display: none; } /* "PLAY AS" label wastes space */
+  .side-btn { padding: 5px 10px; font-size: 0.62rem; }
+
+  /* Mode tabs share the row equally */
+  .mode-tabs { flex: 1; }
+  .mode-tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 6px;
+    font-size: 0.58rem;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Player strips ── */
+  /* Wrap so the skill slider drops to its own line */
+  .player-strip {
+    flex-wrap: wrap;
+    padding: 7px 10px;
+    gap: 6px;
+  }
+
+  .strip-left  { flex: 1; min-width: 0; }
+
+  /* Skill slider + captured pieces fill the full strip width */
+  .strip-right {
+    width: 100%;
+    gap: 10px;
+  }
+
+  /* Slider grows to fill available space */
+  .skill-inline { flex: 1; }
+  .skill-track  { flex: 1; width: auto; min-width: 60px; }
+
+  .king-icon { width: 26px; height: 26px; font-size: 0.92rem; }
+
+  /* ── Board footer ── */
+  .board-footer { gap: 8px; width: 100%; }
+
+  /* Status pill full width, no min-width constraint */
+  .status-readout {
+    min-width: unset;
+    width: 100%;
+    font-size: 0.65rem;
+    padding: 7px 12px;
+  }
+
+  /* Controls wrap to two rows: buttons | speed */
+  .controls-row { gap: 8px; width: 100%; }
+
+  /* Buttons big enough for a finger tap (44 px iOS HIG) */
+  button.action-btn {
+    min-height: 44px;
+    padding: 10px 18px;
+    flex: 1;
+  }
+
+  /* Speed slider row: full width, centred */
+  .clock-control {
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .clock-control input[type=range] { flex: 1; max-width: 180px; }
+}
+
+/* ── Very small phones (< 390px) ── */
+@media (max-width: 390px) {
+  .logo-wordmark { font-size: 0.42rem; }
+  .mode-tab { font-size: 0.52rem; padding: 6px 4px; }
+  .engine-select { max-width: 110px; font-size: 0.72rem; }
 }
