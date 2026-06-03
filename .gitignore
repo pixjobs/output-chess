@@ -1,0 +1,26 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+
+# Stockfish binary — platform-specific (ARM/x86/etc.)
+# Download for your platform: https://stockfishchess.org/download
+# Set STOCKFISH_PATH env var if the binary isn't at ./stockfish
+stockfish
+
+# Node
+frontend/node_modules/
+
+# Old prototype files
+static/
+docs/
+app.py
+
+# Secrets
+.env
+
+# OS
+.DS_Store
+Thumbs.db
