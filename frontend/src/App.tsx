@@ -37,7 +37,7 @@ const API = (import.meta.env.VITE_API_BASE as string | undefined) ?? '';
 const ENGINE_ICONS: Record<string, string> = {
   stockfish: '♞',
   stockfish_blitz: '⚡',
-  random: '🎲',
+  sunfish: '☀',
 };
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -354,6 +354,9 @@ export default function App() {
     const adv = side === 'white' ? material.advantage : -material.advantage;
     const isActive = (side === 'white') === whiteTurn;
     const kingIcon = side === 'white' ? '♔' : '♚';
+    const engineInfo = config!.engines.find(e => e.id === engineId);
+    const hasSkill = engineInfo ? engineInfo.skill_range[0] !== engineInfo.skill_range[1] : true;
+    const displayElo = hasSkill ? ELO_MAP[skill] : engineInfo?.min_elo;
 
     return (
       <div className={`player-strip ${isActive && !gameOver ? 'active-turn' : ''}`}>
@@ -372,11 +375,11 @@ export default function App() {
                 ))}
               </select>
             )}
-            {!isPlayer && <span className="elo-tag">{ELO_MAP[skill]} ELO</span>}
+            {!isPlayer && <span className="elo-tag">{displayElo} ELO</span>}
           </div>
         </div>
         <div className="strip-right">
-          {!isPlayer && (
+          {!isPlayer && hasSkill && (
             <div className="skill-row">
               <span className="skill-val">SL{skill.toString().padStart(2, '0')}</span>
               <input type="range" min={0} max={20} value={skill} className="skill-track"

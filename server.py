@@ -3,6 +3,7 @@ from flask_cors import CORS
 import chess
 import chess.engine
 import os
+import sys
 import random
 import threading
 import atexit
@@ -66,6 +67,8 @@ class RandomBot:
         pass
 
 
+_SUNFISH_CMD = [sys.executable, os.path.join(os.path.dirname(__file__), "engines/sunfish/sunfish.py")]
+
 # Registry
 ENGINE_REGISTRY: dict[str, dict] = {
     "stockfish": {
@@ -84,12 +87,23 @@ ENGINE_REGISTRY: dict[str, dict] = {
         "max_elo": 900,
         "time_limit": 0.02,
     },
+    # Pure-Python engine, no skill levels, plays ~1200 ELO
+    "sunfish": {
+        "name": "Sunfish",
+        "cmd": _SUNFISH_CMD,
+        "skill_range": (0, 0),
+        "min_elo": 1200,
+        "max_elo": 1200,
+        "no_options": True,
+    },
+    # Hidden — used only in tests for fast full-game loops
     "random": {
         "name": "RandomBot",
         "skill_range": (0, 0),
         "min_elo": 100,
         "max_elo": 300,
         "random_bot": True,
+        "hidden": True,
     },
 }
 
@@ -108,7 +122,8 @@ class EnginePool:
                 if info.get("random_bot"):
                     wrapper = RandomBot(info["name"])
                 else:
-                    wrapper = EngineWrapper(info["path"], info["name"])
+                    cmd = info.get("cmd") or info["path"]
+                    wrapper = EngineWrapper(cmd, info["name"])
                 wrapper.start()
                 self._cache[engine_key] = wrapper
             return self._cache[engine_key]
@@ -172,8 +187,9 @@ def _do_bot_move() -> dict:
     engine_key = state.white_engine if is_white_turn else state.black_engine
     bot_info = ENGINE_REGISTRY.get(engine_key, {})
     bot = pool.get(engine_key)
-    if bot_info.get("random_bot"):
-        result = bot.play(state.board, chess.engine.Limit(time=0.3))
+    if bot_info.get("random_bot") or bot_info.get("no_options"):
+        time_lim = bot_info.get("time_limit", 0.5)
+        result = bot.play(state.board, chess.engine.Limit(time=time_lim))
     else:
         skill = state.white_skill if is_white_turn else state.black_skill
         opts = state.skill_options(engine_key, skill)
@@ -213,15 +229,12 @@ def index():
 
 @app.route("/api/config", methods=["GET"])
 def get_config():
-    engines = []
-    for key, info in ENGINE_REGISTRY.items():
-        engines.append({
-            "id": key,
-            "name": info["name"],
-            "min_elo": info["min_elo"],
-            "max_elo": info["max_elo"],
-            "skill_range": info["skill_range"],
-        })
+    engines = [
+        {"id": key, "name": info["name"], "min_elo": info["min_elo"],
+         "max_elo": info["max_elo"], "skill_range": info["skill_range"]}
+        for key, info in ENGINE_REGISTRY.items()
+        if not info.get("hidden")
+    ]
 
     return jsonify({
         "engines": engines,
