@@ -147,13 +147,15 @@ export default function App() {
   const [inCheck, setInCheck] = useState(false);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const movesEndRef = useRef<HTMLDivElement | null>(null);
+  const logListRef = useRef<HTMLDivElement | null>(null);
 
   const isHumanTurn =
     config?.mode === 'player_vs_bot' &&
     config?.player_color === (whiteTurn ? 'white' : 'black');
 
-  useEffect(() => { movesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [moves]);
+  useEffect(() => {
+    if (logListRef.current) logListRef.current.scrollTop = logListRef.current.scrollHeight;
+  }, [moves]);
   useEffect(() => { fetch(`${API}/api/config`).then((r) => r.json()).then(setConfig); }, []);
 
   // ── API ────────────────────────────────────────────────────────────────
@@ -461,7 +463,7 @@ export default function App() {
             {grouped.length === 0 ? (
               <div className="log-empty">— NO MOVES YET —</div>
             ) : (
-              <div className="log-list">
+              <div className="log-list" ref={logListRef}>
                 {grouped.map((g) => (
                   <div key={g.n} className="log-row">
                     <span className="log-n">{g.n.toString().padStart(2, '0')}.</span>
@@ -469,7 +471,6 @@ export default function App() {
                     {g.b && <span className="log-b">{g.b}</span>}
                   </div>
                 ))}
-                <div ref={movesEndRef} />
               </div>
             )}
           </div>
